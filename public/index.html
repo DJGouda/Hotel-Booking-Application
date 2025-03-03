@@ -1,0 +1,250 @@
+<!-- Duren Gouda
+B00949586 -->
+
+<!-- made this using node.js, I mean I felt like node.js is good than php but still, depends!!-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kotha Da Hotel</title>
+
+  <!-- Bootstrap CSS link : https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/ -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- this link for the green tick icon: https://cdnjs.cloudflare.com/ -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+  <h1 class="text-center mb-4">Dal Ka KOTHA - A Heritage Hotel</h1>
+
+  <!-- Search Form -->
+  <form id="searchForm" class="mb-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-auto">
+        <label for="roomType" class="col-form-label">Room Type:</label>
+      </div>
+      <div class="col-auto">
+        <select id="roomType" name="roomType" class="form-select">
+          <option value="">All</option>
+          <option value="Single">Single</option>
+          <option value="Double">Double</option>
+          <option value="Suite">Suite</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label for="minPrice" class="col-form-label">Min Price:</label>
+      </div>
+      <div class="col-auto">
+        <input type="number" id="minPrice" class="form-control" placeholder="Min Price">
+      </div>
+      <div class="col-auto">
+        <label for="maxPrice" class="col-form-label">Max Price:</label>
+      </div>
+      <div class="col-auto">
+        <input type="number" id="maxPrice" class="form-control" placeholder="Max Price">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Search Results -->
+  <h2 class="mb-3">Search Results</h2>
+  <table id="resultsTable" class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Results will be populated here -->
+    </tbody>
+  </table>
+
+  <!-- Room Details -->
+  <h2 class="mt-5 mb-3">Room Details</h2>
+  <div id="roomDetails" class="card">
+    <div class="card-body">
+      <!-- Room details will be displayed here -->
+    </div>
+  </div>
+
+  <!-- Booking Form -->
+  <h2 class="mt-5 mb-3">Book a Room</h2>
+  <form id="bookingForm" class="mb-5">
+    <div class="mb-3">
+      <label for="userName" class="form-label">Your Name:</label>
+      <input type="text" id="userName" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="bookingRoomType" class="form-label">Room Type:</label>
+      <select id="bookingRoomType" class="form-select" required>
+        <option value="">Select a room type</option>
+        <option value="Single">Single</option>
+        <option value="Double">Double</option>
+        <option value="Suite">Suite</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="checkInDate" class="form-label">Check-In Date:</label>
+      <input type="date" id="checkInDate" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="checkOutDate" class="form-label">Check-Out Date:</label>
+      <input type="date" id="checkOutDate" class="form-control" required>
+    </div>
+    <div id="errorMessage" class="alert alert-danger d-none"></div>
+    <button type="submit" class="btn btn-success">Book Now</button>
+  </form>
+
+  <!-- Confirmation Section -->
+  <div id="confirmationSection" class="text-center d-none">
+    <i class="fas fa-check-circle text-success fa-5x mb-3"></i>
+    <h2 class="mb-3">Booking Successful!</h2>
+    <p>Your room has been booked successfully.</p>
+    <button class="btn btn-primary" onclick="resetForm()">Book Another Room</button>
+  </div>
+
+  <!-- Bootstrap JS link: https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script> // was confused to make another js file or not, but I stick to the submission file guidlines made a script in this HTMl file
+
+    // search form submission
+    document.getElementById('searchForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const roomType = document.getElementById('roomType').value;
+      const minPrice = parseFloat(document.getElementById('minPrice').value);
+      const maxPrice = parseFloat(document.getElementById('maxPrice').value);
+
+      let query = `roomType=${roomType}`;
+      if (!isNaN(minPrice)) query += `&minPrice=${minPrice}`;
+      if (!isNaN(maxPrice)) query += `&maxPrice=${maxPrice}`;
+
+      const response = await fetch(`/search?${query}`);
+      const rooms = await response.json();
+
+      // clearing the previous results
+      const tbody = document.querySelector('#resultsTable tbody');
+      tbody.innerHTML = '';
+
+      // add in the table
+      rooms.forEach(room => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${room.name}</td>
+          <td>${room.type}</td>
+          <td>$${room.price}</td>
+          <td><button class="btn btn-info btn-sm" onclick="viewRoomDetails(${room.id})">View Details</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+
+    // fetch and display room details
+    async function viewRoomDetails(roomId) {
+      const response = await fetch(`/room/${roomId}`);
+      const room = await response.json();
+      const detailsDiv = document.getElementById('roomDetails');
+      detailsDiv.innerHTML = `
+        <h3>${room.name}</h3>
+        <p><strong>Type:</strong> ${room.type}</p>
+        <p><strong>Price:</strong> $${room.price}</p>
+        <p><strong>Description:</strong> ${room.description}</p>
+      `;
+    }
+
+    // booking form submisssion
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      //form values
+      const userName = document.getElementById('userName').value.trim();
+      const roomType = document.getElementById('bookingRoomType').value;
+      const checkInDate = document.getElementById('checkInDate').value;
+      const checkOutDate = document.getElementById('checkOutDate').value;
+
+      // for clearing previous error messages
+      const errorMessageDiv = document.getElementById('errorMessage');
+      errorMessageDiv.classList.add('d-none');
+      errorMessageDiv.textContent = '';
+
+      // Validate inputs
+      if (!userName) {
+        showError('Please enter your name.');
+        return;
+      }
+
+      if (!roomType) {
+        showError('Please select a room type.');
+        return;
+      }
+
+      if (!checkInDate || !checkOutDate) {
+        showError('Please select both check-in and check-out dates.');
+        return;
+      }
+
+      if (new Date(checkInDate) >= new Date(checkOutDate)) {
+        showError('Check-in date must be before check-out date.');
+        return;
+      }
+
+      // If all validations pass, submit the booking
+      const bookingData = {
+        userName,
+        roomType,
+        checkInDate,
+        checkOutDate,
+      };
+
+      try {
+        const response = await fetch('/book', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bookingData),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // this hides the booking form and show the confirmation section
+          document.getElementById('bookingForm').classList.add('d-none');
+          document.getElementById('confirmationSection').classList.remove('d-none');
+        } else {
+          // display error if error occur
+          showError(result.error || 'Booking failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showError('An unexpected error occurred. Please try again.');
+      }
+    });
+
+    // this function is to display error messages
+    function showError(message) {
+      const errorMessageDiv = document.getElementById('errorMessage');
+      errorMessageDiv.textContent = message;
+      errorMessageDiv.classList.remove('d-none');
+    }
+
+    // this function isi to reset the form and show the booking form again
+    function resetForm() {
+      document.getElementById('bookingForm').reset();
+      document.getElementById('bookingForm').classList.remove('d-none');
+      document.getElementById('confirmationSection').classList.add('d-none');
+    }
+  </script>
+</body>
+</html>
