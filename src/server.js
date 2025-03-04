@@ -1,5 +1,4 @@
-/* Duren Gouda
-B00949586 */
+/* Duren Gouda */
 
 const http = require('http');
 const url = require('url');
