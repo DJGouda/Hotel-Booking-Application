@@ -1,5 +1,4 @@
-/* Duren Gouda
-B00949586 */
+/* Duren Gouda */
 
 const fs = require('fs');
 const path = require('path');
