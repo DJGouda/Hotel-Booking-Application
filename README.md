@@ -1,7 +1,3 @@
-Name : Duren Gouda
-Banner Id : B00949586
-
-
 # Hotel Booking Application
 
 ## Overview
